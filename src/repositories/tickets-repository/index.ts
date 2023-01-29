@@ -4,8 +4,17 @@ async function findTicketsTypes() {
   return prisma.ticketType.findMany();
 }
 
+async function findTickets() {
+  return prisma.ticket.findFirst({
+    include: {
+      TicketType: true,
+    },
+  });
+}
+
 const ticketsRepository = {
-  findTicketsTypes
+  findTicketsTypes,
+  findTickets
 };
 
 export default ticketsRepository;
