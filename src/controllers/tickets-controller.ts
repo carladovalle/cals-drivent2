@@ -24,3 +24,17 @@ export async function getTickets(req: AuthenticatedRequest, res: Response) {
     return res.sendStatus(httpStatus.NO_CONTENT);
   }
 }
+
+export async function postTickets(req: AuthenticatedRequest, res: Response) {
+
+  const { ticketTypeId } = req.body;
+  const { userId } = req;
+
+  try {
+    const ticket = await ticketsService.postTicket(userId, ticketTypeId);
+
+    res.status(httpStatus.CREATED).send(ticket);
+  } catch (error) {
+    return res.sendStatus(httpStatus.NO_CONTENT);
+  }
+}
