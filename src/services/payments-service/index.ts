@@ -1,4 +1,5 @@
-import { notFoundError, unauthorizedError } from "@/errors";
+import { badRequestError, notFoundError, unauthorizedError } from "@/errors";
+import { PaymentData } from "@/protocols";
 import paymentsRepository from "@/repositories/payments-repository";
 import ticketsRepository from "@/repositories/tickets-repository";
 
@@ -29,8 +30,37 @@ async function validateTicket(userId: number, ticketId: number) {
 
 }
 
+async function postPayment(paymentData: PaymentData, userId: number) {
+
+  if (!paymentData.ticketId) {
+    throw badRequestError();
+  }
+
+  if (!paymentData.cardData) {
+    throw badRequestError();
+  }
+
+  const ticket = await validateTicket(userId, paymentData.ticketId);
+
+  const { price } = await ticketsRepository.findTicketTypeById(ticket.ticketTypeId);
+
+  const body = {
+    ticketId: paymentData.ticketId,
+    value: price,
+    cardIssuer: paymentData.cardData.issuer,
+    cardLastDigits: paymentData.cardData.number.toString().slice(-4),
+  };
+
+  const payment = await paymentsRepository.createPayments(body);
+
+  await ticketsRepository.updateStatus(paymentData.ticketId);
+
+  return payment;
+}
+
 const paymentsService = {
-  getPayment
+  getPayment,
+  postPayment
 };
 
 export default paymentsService;
